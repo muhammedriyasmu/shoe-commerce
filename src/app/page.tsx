@@ -1,65 +1,78 @@
-import Image from "next/image";
+﻿import Link from 'next/link';
+import ProductCard from '@/components/ProductCard';
+import { getAllProducts } from '@/lib/services/googleSheets';
 
-export default function Home() {
+export const revalidate = 60;
+
+export default async function HomePage() {
+  const products = (await getAllProducts()).slice(0, 8);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="mx-auto w-full max-w-7xl px-4 py-10">
+      <section className="tech-card mb-10 grid gap-6 p-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <div>
+          <p className="mb-2 text-xs tracking-widest text-slate-400">SYSTEM ONLINE // GOOGLE SHEETS LINKED</p>
+          <h1 className="mb-3 text-3xl font-black uppercase tracking-wide text-slate-100 sm:text-5xl">
+            Performance Tech Footwear
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+            Discover engineered shoes by category, drill into specs, and deploy orders via WhatsApp in seconds.
           </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/products" className="tech-btn-primary inline-block px-5 py-3 text-sm">
+              Enter The Vault
+            </Link>
+            <Link href="/products?category=sports" className="tech-btn inline-block px-5 py-3 text-sm font-semibold">
+              Sports Feed
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <div className="relative min-h-[260px] lg:min-h-[300px]">
+          <div className="floating absolute inset-6 border border-[var(--line)] bg-[#0d0f15] p-4">
+            <img
+              src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1400"
+              alt="Flagship shoe"
+              className="h-full w-full object-cover"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+
+          <div className="absolute left-0 top-4 flex items-center gap-2 text-xs text-slate-300">
+            <span className="hud-dot" />
+            <span>PROPULSION +14%</span>
+            <span className="hud-line" style={{ left: '120px', top: '8px' }} />
+          </div>
+
+          <div className="absolute bottom-6 right-0 flex items-center gap-2 text-xs text-slate-300">
+            <span className="hud-line" style={{ right: '130px', top: '8px' }} />
+            <span>WEIGHT 210g</span>
+            <span className="hud-dot" />
+          </div>
         </div>
-      </main>
+      </section>
+
+      <section className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {['sports', 'casual', 'formal', 'sneakers'].map((c) => (
+          <Link key={c} href={`/products?category=${c}`} className="tech-card px-4 py-5 text-center text-sm font-semibold capitalize text-slate-100 tech-glow">
+            {c}
+          </Link>
+        ))}
+      </section>
+
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-slate-100">Latest Drops</h2>
+          <Link href="/products" className="text-sm font-semibold" style={{ color: 'var(--neon)' }}>
+            View all
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

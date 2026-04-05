@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿# ShoeSheet Store (Next.js + Google Sheets CMS)
 
-## Getting Started
+Production-ready shoe eCommerce app using **Next.js App Router + Tailwind CSS** with **Google Sheets as backend CMS**.
 
-First, run the development server:
+## Features
+
+- Category browsing: sports, casual, formal, sneakers
+- Filters: price, category, size
+- Search + pagination
+- Product details with stock info
+- Stock badges: `Out of Stock`, `Only X left`
+- LocalStorage cart (update/remove)
+- WhatsApp order integration with prefilled message
+- Floating WhatsApp support button
+- API route caching + revalidation every 60s
+- Vercel-ready architecture
+
+## Tech Stack
+
+- Frontend: Next.js (App Router), Tailwind CSS
+- Backend: Next.js API routes
+- Data source: Google Sheets (CSV or Sheets API)
+- Deployment: Vercel
+
+## 1. Local Setup
+
+```bash
+npm install
+```
+
+Copy env:
+
+```bash
+cp .env.example .env.local
+```
+
+Fill `.env.local` and run:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 2. Google Sheets Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create sheet columns exactly in row 1:
 
-## Learn More
+- `id`
+- `name`
+- `description`
+- `price`
+- `category`
+- `sizes` (comma separated, e.g. `7,8,9,10`)
+- `image_url`
+- `stock`
+- `in_stock` (`TRUE` or `FALSE`)
 
-To learn more about Next.js, take a look at the following resources:
+### Option A: Public CSV (simplest)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Publish or share sheet as public read.
+2. Use CSV URL format:
+   `https://docs.google.com/spreadsheets/d/<SHEET_ID>/export?format=csv&gid=0`
+3. Set `GOOGLE_SHEETS_CSV_URL` in `.env.local`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Option B: Google Sheets API
 
-## Deploy on Vercel
+1. Create Google Cloud project and enable Sheets API.
+2. Create API key (restrict it in production).
+3. Set:
+   - `GOOGLE_SHEET_ID`
+   - `GOOGLE_SHEETS_API_KEY`
+   - `GOOGLE_SHEET_RANGE` (default `Products!A:I`)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 3. Inventory Management via Sheet
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Update stock in sheet and site auto-refreshes.
+- Add rows in sheet and products appear automatically.
+- Set `stock=0` or `in_stock=FALSE` to disable ordering.
+
+## 4. API Endpoints
+
+- `GET /api/products`
+  - Query params: `search`, `category`, `size`, `minPrice`, `maxPrice`, `page`, `limit`
+- `GET /api/products/:id`
+
+Both use revalidation/cached source data (60s).
+
+## 5. WhatsApp Order Message Format
+
+Product page sends:
+
+```text
+Hi, I want to order:
+Product: {name}
+Size: {size}
+Quantity: {qty}
+Total: ₹{price}
+```
+
+Cart page sends all line items + grand total.
+
+## 6. Deployment (Vercel)
+
+1. Push repo to GitHub.
+2. Import project in Vercel.
+3. Add environment variables from `.env.example`.
+4. Deploy.
+
+No separate backend service required.
+
+## Folder Structure (high-level)
+
+- `src/app` - pages + API routes
+- `src/components` - reusable UI
+- `src/hooks` - cart state
+- `src/lib/services` - Google Sheets fetching/parsing
+- `src/types` - shared types
