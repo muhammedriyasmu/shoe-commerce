@@ -1,5 +1,30 @@
-﻿import { Product } from '@/types';
+import { Product } from '@/types';
 import { CATEGORIES } from '@/lib/constants';
+
+function getSheetsConfig() {
+  const csvUrl = process.env.GOOGLE_SHEETS_CSV_URL?.trim();
+  if (csvUrl) {
+    return {
+      mode: 'csv' as const,
+      csvUrl,
+    };
+  }
+
+  const sheetId = process.env.GOOGLE_SHEET_ID?.trim();
+  const apiKey = process.env.GOOGLE_SHEETS_API_KEY?.trim();
+  const range = process.env.GOOGLE_SHEET_RANGE?.trim() || 'Products!A:I';
+
+  if (sheetId && apiKey) {
+    return {
+      mode: 'api' as const,
+      sheetId,
+      apiKey,
+      range,
+    };
+  }
+
+  return null;
+}
 
 function toCsvUrl(url: string): string {
   const trimmed = url.trim();
@@ -121,16 +146,18 @@ async function fetchFromSheetsApi(sheetId: string, range: string, apiKey: string
 }
 
 export async function getAllProducts(): Promise<Product[]> {
-  const csvUrl = process.env.GOOGLE_SHEETS_CSV_URL;
-  if (csvUrl) return fetchFromCsv(csvUrl);
+  const config = getSheetsConfig();
+  if (!config) {
+    throw new Error(
+      'Products source is not configured. Add GOOGLE_SHEETS_CSV_URL or GOOGLE_SHEET_ID + GOOGLE_SHEETS_API_KEY in Vercel Environment Variables.'
+    );
+  }
 
-  const sheetId = process.env.GOOGLE_SHEET_ID;
-  const apiKey = process.env.GOOGLE_SHEETS_API_KEY;
-  const range = process.env.GOOGLE_SHEET_RANGE || 'Products!A:I';
+  if (config.mode === 'csv') {
+    return fetchFromCsv(config.csvUrl);
+  }
 
-  if (!sheetId || !apiKey) return [];
-
-  return fetchFromSheetsApi(sheetId, range, apiKey);
+  return fetchFromSheetsApi(config.sheetId, config.range, config.apiKey);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {

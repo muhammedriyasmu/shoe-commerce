@@ -1,11 +1,20 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
+import ProductsUnavailable from '@/components/ProductsUnavailable';
 import { getAllProducts } from '@/lib/services/googleSheets';
+import { Product } from '@/types';
 
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const products = (await getAllProducts()).slice(0, 8);
+  let products: Product[] = [];
+  let productsError: string | null = null;
+
+  try {
+    products = (await getAllProducts()).slice(0, 8);
+  } catch (error) {
+    productsError = error instanceof Error ? error.message : 'Unable to load products right now.';
+  }
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10">
@@ -67,11 +76,15 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {productsError ? (
+          <ProductsUnavailable message={productsError} />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
